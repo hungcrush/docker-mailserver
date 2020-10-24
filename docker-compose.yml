@@ -1,14 +1,8 @@
-version: '3.5'
+version: '3.9'
 
 services:
   # Creates self signed tls certificates. Remove if you
   # use your own.
-  ssl:
-    image: jeboehm/mailserver-ssl:latest
-    build: ./ssl
-    env_file: .env
-    volumes:
-      - data-tls:/media/tls:rw
 
   # Responsible for storing users and their aliases. Remove
   # if you already have a MySQL server.
@@ -23,38 +17,49 @@ services:
   # The Mail Transfer Agent (Postfix) receives incoming mail
   # on TCP port 25.
   mta:
-    image: jeboehm/mailserver-mta:latest
-    build: ./mta
+    # image: jeboehm/mailserver-mta:latest
+    build:
+      context: ./mta
+      dockerfile: Dockerfile
+      args:
+        buildno: 1
     restart: on-failure:5
     env_file: .env
     volumes:
-      - data-tls:/media/tls:ro
       # For using external certificates uncomment the following lines
       # and change the path on the left side of the colon.
-      # - /home/user/certs/mail.example.com.crt:/media/tls/mailserver.crt:ro
-      # - /home/user/certs/mail.example.com.key:/media/tls/mailserver.key:ro
+      - /Volumes/HarrySpace/ssl/tinyinv.com/fullchain.pem:/media/tls/mailserver.crt:ro
+      - /Volumes/HarrySpace/ssl/tinyinv.com/privkey.pem:/media/tls/mailserver.key:ro
+      - /Volumes/HarrySpace/ssl/saigontiny.com/fullchain.pem:/media/tls/saigontiny.crt:ro
+      - /Volumes/HarrySpace/ssl/saigontiny.com/privkey.pem:/media/tls/saigontiny.key:ro
 
   # The Mail Delivery Agent (Dovecot) is responsible for storing
   # incoming mail into a users mailbox and also delivers them
   # via POP3 or IMAP4.
   mda:
-    image: jeboehm/mailserver-mda:latest
-    build: ./mda
+    # image: jeboehm/mailserver-mda:latest
+    build:
+      context: ./mda
+      dockerfile: Dockerfile
+      args:
+        buildno: 1
     restart: on-failure:5
     env_file: .env
     volumes:
       - data-mail:/var/vmail
-      - data-tls:/media/tls:ro
       # For using external certificates uncomment the following lines
       # and change the path on the left side of the colon.
-      # - /home/user/certs/mail.example.com.crt:/media/tls/mailserver.crt:ro
-      # - /home/user/certs/mail.example.com.key:/media/tls/mailserver.key:ro
+      - /Volumes/HarrySpace/ssl/tinyinv.com/fullchain.pem:/media/tls/mailserver.crt:ro
+      - /Volumes/HarrySpace/ssl/tinyinv.com/privkey.pem:/media/tls/mailserver.key:ro
+      - /Volumes/HarrySpace/ssl/saigontiny.com/fullchain.pem:/media/tls/saigontiny.crt:ro
+      - /Volumes/HarrySpace/ssl/saigontiny.com/privkey.pem:/media/tls/saigontiny.key:ro
+      # - ./mda/custom/10-ssl.conf:/etc/dovecot/conf.d/10-ssl.conf
 
   # The admin (mailserver-admin) and webmail (roundcube) interfaces
   # live here. Can be removed if not needed.
   web:
     image: jeboehm/mailserver-web:latest
-    build: ./web
+    # build: ./web
     restart: on-failure:5
     env_file: .env
     volumes:
@@ -67,7 +72,7 @@ services:
   # in this service.
   filter:
     image: jeboehm/mailserver-filter:latest
-    build: ./filter
+    # build: ./filter
     restart: on-failure:5
     env_file: .env
     volumes:
@@ -80,7 +85,7 @@ services:
   # this service. Can be removed if FILTER_VIRUS is set to false.
   virus:
     image: jeboehm/mailserver-virus:latest
-    build: ./virus
+    # build: ./virus
     restart: on-failure:5
     env_file: .env
     volumes:

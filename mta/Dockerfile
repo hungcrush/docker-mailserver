@@ -23,6 +23,8 @@ ENV MAILNAME=mail.example.com \
     SSL_KEY=/media/tls/mailserver.key \
     WAITSTART_TIMEOUT=1m
 
+COPY rootfs/ /
+
 RUN apk --no-cache add \
       postfix-mysql \
       postfix \
@@ -41,8 +43,10 @@ RUN apk --no-cache add \
     postconf smtp_tls_security_level=may && \
     postconf smtpd_tls_security_level=may && \
     postconf smtpd_tls_auth_only=yes && \
-    postconf smtpd_tls_cert_file="${SSL_CERT}" && \
-    postconf smtpd_tls_key_file="${SSL_KEY}" && \
+    # postconf smtpd_tls_cert_file="${SSL_CERT}" && \
+    # postconf smtpd_tls_key_file="${SSL_KEY}" && \
+    postconf smtpd_tls_chain_files="${SSL_KEY},${SSL_CERT}" && \
+    postconf tls_server_sni_maps="hash:/etc/postfix/vmail_ssl.map" && \
     postconf smtpd_discard_ehlo_keywords="silent-discard, dsn" && \
     postconf soft_bounce=no && \
     postconf message_size_limit=52428800 && \
@@ -54,10 +58,10 @@ RUN apk --no-cache add \
     postconf maximal_backoff_time=15m && \
     postconf minimal_backoff_time=5m && \
     postconf queue_run_delay=5m && \
+    postmap -F hash:/etc/postfix/vmail_ssl.map && \
     newaliases
 
 COPY --from=dockerize /usr/local/bin/dockerize /usr/local/bin
-COPY rootfs/ /
 
 EXPOSE 25
 VOLUME ["/var/spool/postfix"]

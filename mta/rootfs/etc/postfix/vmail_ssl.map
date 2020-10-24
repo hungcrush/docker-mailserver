@@ -1,0 +1,2 @@
+mail.tinyinv.com /media/tls/mailserver.key /media/tls/mailserver.crt
+mail.saigontiny.com /media/tls/saigontiny.key /media/tls/saigontiny.crt
